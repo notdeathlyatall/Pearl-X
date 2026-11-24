@@ -55,7 +55,8 @@ required, and the two features are completely independent of each other.
 1. Install [Fabric Loader](https://fabricmc.net/use/) for your Minecraft version.
 2. Put [Fabric API](https://modrinth.com/mod/fabric-api) in your `mods` folder.
 3. *(Optional)* Install [Mod Menu](https://modrinth.com/mod/modmenu) to reach the settings screen.
-4. Download the Pearl X jar that matches your exact Minecraft version and put it in `mods`.
+4. Download the Pearl X jar that matches your exact Minecraft version from the
+   [latest release](https://github.com/notdeathlyatall/Pearl-X/releases/latest) and put it in `mods`.
 5. Launch the game. Pearl X works on any server without the server installing anything.
 
 Pearl X never connects to the internet, contains no telemetry, and stores everything on your own

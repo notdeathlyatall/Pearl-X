@@ -1,0 +1,65 @@
+name: Release
+
+# Pearl X ships one prebuilt jar per Minecraft version, committed under build/dist.
+# Building every version in CI would need seventeen full Loom toolchains, so this
+# workflow only publishes the jars that are already in the repository.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Publish release for the current mod_version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          version="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '[:space:]')"
+          if [ -z "$version" ]; then
+            echo "mod_version is missing from gradle.properties" >&2
+            exit 1
+          fi
+
+          tag="v${version}"
+          notes="docs/releases/${tag}.md"
+
+          if [ ! -f "$notes" ]; then
+            echo "Release notes $notes are missing" >&2
+            exit 1
+          fi
+
+          jars=(build/dist/pearlx-*.jar)
+          if [ ! -e "${jars[0]}" ]; then
+            echo "No jars found in build/dist" >&2
+            exit 1
+          fi
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; leaving it untouched."
+            exit 0
+          fi
+
+          sha256sum "${jars[@]}" > build/dist/SHA256SUMS.txt
+          cat build/dist/SHA256SUMS.txt
+
+          gh release create "$tag" \
+            --title "Pearl X ${version}" \
+            --target "$GITHUB_SHA" \
+            --notes-file "$notes" \
+            "${jars[@]}" build/dist/SHA256SUMS.txt
+
+          echo "Published $tag with ${#jars[@]} jars."
