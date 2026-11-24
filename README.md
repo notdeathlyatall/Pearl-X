@@ -11,10 +11,10 @@ required, and the two features are completely independent of each other.
 
 | | |
 |---|---|
-| Mod loader | Fabric Loader 0.16.0+ |
+| Mod loader | [Fabric Loader 0.16.0+](https://fabricmc.net/use/installer/) |
 | Minecraft | 1.21 - 1.21.11, 26.1 - 26.3 (see [COMPATIBILITY.md](COMPATIBILITY.md)) |
 | Environment | Client only (no server component, no mixins into server classes) |
-| Dependencies | Fabric API required, Mod Menu optional |
+| Dependencies | [Fabric API](https://modrinth.com/mod/fabric-api) required, [Mod Menu](https://modrinth.com/mod/modmenu) or [OneConfig](https://modrinth.com/mod/oneconfig)required |
 | Java | 21 for 1.21.x builds, 25 for 26.x builds |
 | License | MIT |
 
@@ -54,7 +54,7 @@ required, and the two features are completely independent of each other.
 
 1. Install [Fabric Loader](https://fabricmc.net/use/) for your Minecraft version.
 2. Put [Fabric API](https://modrinth.com/mod/fabric-api) in your `mods` folder.
-3. *(Optional)* Install [Mod Menu](https://modrinth.com/mod/modmenu) to reach the settings screen.
+3. *Required* Install [Mod Menu](https://modrinth.com/mod/modmenu) to reach the settings screen or [OneConfig](https://modrinth.com/mod/oneconfig)
 4. Download the Pearl X jar that matches your exact Minecraft version from the
    [latest release](https://github.com/notdeathlyatall/Pearl-X/releases/latest) and put it in `mods`.
 5. Launch the game. Pearl X works on any server without the server installing anything.
