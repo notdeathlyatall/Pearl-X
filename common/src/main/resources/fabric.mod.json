@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "pearlx",
+  "version": "${version}",
+  "name": "Pearl X",
+  "description": "Client-side Ender Pearl tracker with an independent universal pearl travel animation. Tracks the pearls you throw, saves their locations per server and world, and plays a configurable pearl animation on its own separate timer.",
+  "authors": [
+    "Pearl X Contributors"
+  ],
+  "contact": {
+    "sources": "https://github.com/notdeathlyatall/Pearl-X",
+    "issues": "https://github.com/notdeathlyatall/Pearl-X/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/pearlx/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.pearlx.mc.PearlXClient"
+    ],
+    "modmenu": [
+      "dev.pearlx.mc.PearlXModMenu"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_min}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_range}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}

@@ -1,0 +1,137 @@
+/*
+ * Pearl X - root build.
+ *
+ * One subproject per supported Minecraft version (see gradle/versions.gradle). Each subproject
+ * compiles the shared, Minecraft-free core (common/) together with its version adapter, against
+ * exactly one Minecraft + Fabric API pair, and produces a jar for that Minecraft version only.
+ */
+
+plugins {
+    // Resolved from maven.fabricmc.net (see settings.gradle) and applied per subproject below.
+    // 1.21.x ships obfuscated and needs the remapping plugin; 26.x ships unobfuscated and uses the
+    // non-remapping plugin, where the game's own names are used directly.
+    id 'fabric-loom' version "${loom_version}" apply false
+    id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
+}
+
+apply from: "$rootDir/gradle/versions.gradle"
+
+subprojects { subproject ->
+    def info = VERSIONS[subproject.name]
+    if (info == null) {
+        // Helper projects such as :tests configure themselves.
+        return
+    }
+
+    // 26.x is unobfuscated: no mappings exist and nothing is remapped.
+    boolean remaps = info.remap != false
+    apply plugin: remaps ? 'fabric-loom' : 'net.fabricmc.fabric-loom'
+
+    subproject.group = mod_group
+    subproject.version = "${mod_version}+mc${info.mc}"
+    subproject.base.archivesName = "pearlx-${info.mc}"
+
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'TerraformersMC'
+            url = 'https://maven.terraformersmc.com/releases/'
+            content { includeGroup 'com.terraformersmc' }
+        }
+        maven {
+            name = 'Modrinth'
+            url = 'https://api.modrinth.com/maven'
+            content { includeGroup 'maven.modrinth' }
+        }
+        mavenCentral()
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.toVersion(info.java)
+        targetCompatibility = JavaVersion.toVersion(info.java)
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.release = info.java
+        options.encoding = 'UTF-8'
+    }
+
+    // Shared, Minecraft-independent core plus the Minecraft-facing adapter for this version.
+    subproject.sourceSets.main.java.srcDirs = [
+        subproject.file('src/main/java'),
+        rootProject.file('common/src/main/java'),
+        rootProject.file("version-adapters/${info.adapter}/java"),
+    ]
+    subproject.sourceSets.main.resources.srcDirs = [
+        subproject.file('src/main/resources'),
+        rootProject.file('common/src/main/resources'),
+    ]
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${info.mc}"
+
+        if (remaps) {
+            mappings loom.officialMojangMappings()
+
+            modImplementation "net.fabricmc:fabric-loader:${info.loader}"
+            modImplementation "net.fabricmc.fabric-api:fabric-api:${info.fabricApi}"
+
+            // Optional integration: compiled against, never required at runtime.
+            modCompileOnly "maven.modrinth:modmenu:${info.modmenu}"
+        } else {
+            // Unobfuscated Minecraft: Fabric dependencies are used as plain jars because there is
+            // no remapping step, and no mappings line may be configured.
+            implementation "net.fabricmc:fabric-loader:${info.loader}"
+            implementation "net.fabricmc.fabric-api:fabric-api:${info.fabricApi}"
+
+            compileOnly "maven.modrinth:modmenu:${info.modmenu}"
+        }
+
+        // OneConfig is integrated at runtime through its own configuration API without a compile
+        // time dependency (see OneConfigBridge), because OneConfig publishes many builds that all
+        // share the same version number, which the Modrinth maven cannot disambiguate.
+    }
+
+    def resourceTokens = [
+        version        : subproject.version,
+        minecraft_range: info.mcRange,
+        java_version   : info.java.toString(),
+        loader_min     : '0.16.0',
+        modmenu_min    : info.modmenu,
+    ]
+
+    subproject.processResources {
+        inputs.properties resourceTokens
+        filesMatching('fabric.mod.json') {
+            expand resourceTokens
+        }
+    }
+
+    subproject.jar {
+        from(rootProject.file('LICENSE')) {
+            rename { 'LICENSE-pearlx' }
+        }
+    }
+
+    // Collect every version jar in one place after `./gradlew build`.
+    def outputJarTask = remaps ? 'remapJar' : 'jar'
+    subproject.tasks.register('collectJar', Copy) {
+        dependsOn subproject.tasks.named(outputJarTask)
+        from subproject.layout.buildDirectory.file("libs/pearlx-${info.mc}-${subproject.version}.jar")
+        into rootProject.layout.buildDirectory.dir('dist')
+        rename { "pearlx-${info.mc}-${subproject.version}.jar" }
+    }
+
+    subproject.tasks.named('build') {
+        finalizedBy subproject.tasks.named('collectJar')
+    }
+}
+
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Builds Pearl X for every supported Minecraft version.'
+    dependsOn subprojects.collect { it.tasks.named('build') }
+}

@@ -1,0 +1,38 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'pearlx'
+
+// Plain-Java unit tests for the Minecraft-independent core.
+include 'tests'
+
+// Every Minecraft version that Pearl X ships a dedicated build for.
+// The per-version data (compile target, Fabric API, Mod Menu, adapter sources)
+// lives in gradle/versions.gradle.
+apply from: 'gradle/versions.gradle'
+
+// Optional developer filter: -PpearlxModules=mc1.21.8 configures only the listed versions.
+// A bare ./gradlew build / buildAll always builds every supported version.
+def requestedModules = startParameter.projectProperties['pearlxModules']
+def selected = requestedModules == null
+        ? VERSIONS.keySet()
+        : requestedModules.split(',').collect { it.trim() }.findAll { VERSIONS.containsKey(it) }
+
+selected.each { moduleName ->
+    // The per-version project directories hold no tracked files (all sources are shared), so they
+    // are created on demand. This keeps the repository small and the build self-healing.
+    def projectDirectory = file("versions/${moduleName}")
+    if (!projectDirectory.isDirectory()) {
+        projectDirectory.mkdirs()
+    }
+    include moduleName
+    project(":${moduleName}").projectDir = projectDirectory
+}

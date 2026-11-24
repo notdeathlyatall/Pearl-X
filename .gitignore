@@ -1,0 +1,42 @@
+# Gradle
+.gradle/
+/build/*
+!/build/dist/
+/build/dist/*
+!/build/dist/*.jar
+out/
+
+# Build output of the plain-Java test module
+tests/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Loom / Minecraft
+run/
+remappedSrc/
+versions/*/build/
+versions/*/run/
+*.hprof
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+.eclipse/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local secrets / environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log

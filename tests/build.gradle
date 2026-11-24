@@ -1,0 +1,53 @@
+/*
+ * Unit tests for the Minecraft-independent Pearl X core (timers, tracking, storage, configuration).
+ * This project has no Minecraft dependency, so the logic can be verified without a game client.
+ */
+plugins {
+    id 'java'
+}
+
+group = mod_group
+version = mod_version
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [rootProject.file('common/src/main/java')]
+    }
+    test {
+        java.srcDirs = ['src/test/java']
+    }
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+
+    testImplementation 'com.google.code.gson:gson:2.11.0'
+    testImplementation 'org.slf4j:slf4j-api:2.0.16'
+    testImplementation 'org.slf4j:slf4j-nop:2.0.16'
+    testImplementation platform('org.junit:junit-bom:5.11.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+    }
+}
